@@ -1,0 +1,104 @@
+library(readr)
+newdata <- read_csv("/home/juan/Downloads/newdata.csv")
+
+newdata$LogComments <- log(newdata$`Number of Comments`)
+newdata$LogComments[newdata$LogComments=="-Inf"] <- NA
+newdata$TimeDif <- newdata$`Expected Delivery Time` - newdata$`Time(min)`
+
+summary(newdata$LogComments)
+summary(newdata$TimeDif)
+
+library(tidyr)
+DataMoment <- newdata %>% gather(`Typical Traffic Afternoon`, `Typical Traffic Noon`, `Typical Traffic Morning`, key = "Typical Traffic", value = "Cases")
+
+library(dplyr)
+DataMoments <- data.frame(newdata[1], newdata[5:8], newdata[11:14], newdata[20:21])
+Morning <- DataMoments %>% filter(Moment == "Morning")
+Noon <- DataMoments %>% filter(Moment == "Noon")
+Afternoon <- DataMoments %>% filter(Moment == "Afternoon")
+
+
+summary(Morning$Number.of.Comments)
+summary(Noon$Number.of.Comments)
+summary(Afternoon$Number.of.Comments)
+
+summary(Morning$TimeDif)
+summary(Noon$TimeDif)
+summary(Afternoon$TimeDif)
+
+library(psych)
+describe(Morning$TimeDif)
+describe(Noon$TimeDif)
+describe(Afternoon$TimeDif)
+
+# Let's analyze the segment of restaurants with delays (i.e., those
+# with a TimeDif lower than zero)
+library(dplyr)
+delayed <- newdata %>% filter(TimeDif < 0)
+delayedMornings <- Morning %>% filter(TimeDif < 0)
+delayedNoons <- Noon %>% filter(TimeDif < 0)
+delayedAfternoons <- Afternoon %>% filter(TimeDif < 0)
+
+hist(delayed$TimeDif)
+describe(delayed$TimeDif)
+
+hist(delayedMornings$TimeDif)
+describe(delayedMornings$TimeDif)
+
+hist(delayedNoons$TimeDif)
+describe(delayedNoons$TimeDif)
+
+hist(delayedAfternoons$TimeDif)
+describe(delayedAfternoons$TimeDif)
+
+
+library(lsr)
+
+# Falta poner los anovas para los DTFs
+anovaMorning <- aov(LogComments ~ Morning$Typical.Traffic.Morning, data = Morning)
+summary(anovaMorning)
+etaSquared(anovaMorning, type = 2, anova = TRUE)
+
+anovaNoon <- aov(LogComments ~ Noon$Typical.Traffic.Noon, data = Noon)
+summary(anovaNoon)
+etaSquared(anovaNoon, type = 2, anova = TRUE)
+
+anovaAfternoon <- aov(LogComments ~ Afternoon$Typical.Traffic.Afternoon, data = Afternoon)
+summary(anovaAfternoon)
+etaSquared(anovaAfternoon, type = 2, anova = TRUE)
+
+morningsDTF <- aov(TimeDif ~ Morning$Typical.Traffic.Morning, data = Morning)
+summary(morningsDTF)
+etaSquared(morningsDTF, type = 2, anova = TRUE)
+
+noonsDTF <- aov(TimeDif ~ Noon$Typical.Traffic.Noon, data = Noon)
+summary(noonsDTF)
+etaSquared(noonsDTF, type = 2, anova = TRUE)
+
+afternoonDTF <- aov(TimeDif ~ Afternoon$Typical.Traffic.Afternoon, data = Afternoon)
+summary(afternoonDTF)
+etaSquared(afternoonDTF, type = 2, anova = TRUE)
+
+library(psych)
+describeBy(Morning$Number.of.Comments, group = Morning$Typical.Traffic.Morning, mat = TRUE)
+describeBy(Noon$Number.of.Comments, group = Noon$Typical.Traffic.Noon, mat = TRUE)
+describeBy(Afternoon$Number.of.Comments, group = Afternoon$Typical.Traffic.Afternoon, mat = TRUE)
+
+NewAll <- newdata %>% gather(`Typical Traffic Morning`, `Typical Traffic Noon`, `Typical Traffic Afternoon`, key = "Traffic", value = "cases")
+NewAll$Traffic[NewAll$Traffic=="Typical Traffic Morning"] <- "Morning"
+NewAll$Traffic[NewAll$Traffic=="Typical Traffic Noon"] <- "Noon"
+NewAll$Traffic[NewAll$Traffic=="Typical Traffic Afternoon"] <- "Afternoon"
+NewAll$Moment_f = factor(NewAll$Moment, levels = c("Morning", "Noon", "Afternoon"))
+
+library(ggplot2)
+DataMoment$Moment_f = factor(DataMoment$Moment, levels=c('Morning','Noon','Afternoon'))
+ggplot(DataMoment, aes(x=Cases, y = LogComments, colour=Cases)) + geom_violin(draw_quantiles = c(0.5)) + facet_grid(.~Moment_f) + ylab("Log Comments") + xlab("Google Typical Traffic") + scale_colour_manual(values=c("green", "orange", "red")) + theme(legend.position = "none")
+ggplot(DataMoment, aes(x=Cases, y = TimeDif, colour=Cases)) + geom_violin(draw_quantiles = c(0.5)) + facet_grid(.~Moment_f) + ylab("Delivery Time fulfillment (minutes)") + xlab("Google Typical Traffic") + scale_colour_manual(values=c("green", "orange", "red")) + theme(legend.position = "none")
+ggplot(NewAll, aes(x=TimeDif)) + geom_density(aes(fill=cases), alpha=0.2) + facet_grid(~ Moment_f) + xlab("DTF") + theme(legend.position="top") + scale_fill_discrete(limits=c("Morning", "Noon", "Afternoon")) + scale_fill_manual(values=c("green", "yellow", "red")) + guides(fill=guide_legend(title="Google Typical Traffic"))
+library(PerformanceAnalytics)
+correlated <- data.frame(DataMoment[6], DataMoment[16:18])
+names(correlated)[1]<- paste("DTT")
+names(correlated)[2]<- paste("GoogleTT")
+names(correlated)[4]<- paste("DTF")
+pairs.panels(correlated, method = "spearman", hist.col = "lightgreen")
+
