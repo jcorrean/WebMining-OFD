@@ -1,5 +1,5 @@
 library(readr)
-newdata <- read_csv("/home/juan/Downloads/newdata.csv")
+newdata <- read_csv("~/Documents/GitHub/WebMining-OFD/newdata.csv")
 
 newdata$LogComments <- log(newdata$`Number of Comments`)
 newdata$LogComments[newdata$LogComments=="-Inf"] <- NA
@@ -92,6 +92,10 @@ NewAll$Moment_f = factor(NewAll$Moment, levels = c("Morning", "Noon", "Afternoon
 
 library(ggplot2)
 DataMoment$Moment_f = factor(DataMoment$Moment, levels=c('Morning','Noon','Afternoon'))
+FigA <- ggplot(DataMoment, aes(LogComments, DailyTraffic)) + geom_boxplot() + xlab("Log Number of Comments") + ylab("Typical Traffic")
+FigB <- ggplot(DataMoment, aes(LogComments, DailyTraffic)) + geom_boxplot() + xlab("Log Number of Comments") + ylab("Typical Traffic")
+
+
 ggplot(DataMoment, aes(x=Cases, y = LogComments, colour=Cases)) + geom_violin(draw_quantiles = c(0.5)) + facet_grid(.~Moment_f) + ylab("Log Comments") + xlab("Google Typical Traffic") + scale_colour_manual(values=c("green", "orange", "red")) + theme(legend.position = "none")
 ggplot(DataMoment, aes(x=Cases, y = TimeDif, colour=Cases)) + geom_violin(draw_quantiles = c(0.5)) + facet_grid(.~Moment_f) + ylab("Delivery Time fulfillment (minutes)") + xlab("Google Typical Traffic") + scale_colour_manual(values=c("green", "orange", "red")) + theme(legend.position = "none")
 ggplot(NewAll, aes(x=TimeDif)) + geom_density(aes(fill=cases), alpha=0.2) + facet_grid(~ Moment_f) + xlab("DTF") + theme(legend.position="top") + scale_fill_discrete(limits=c("Morning", "Noon", "Afternoon")) + scale_fill_manual(values=c("green", "yellow", "red")) + guides(fill=guide_legend(title="Google Typical Traffic"))
