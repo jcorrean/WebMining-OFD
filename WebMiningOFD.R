@@ -92,9 +92,10 @@ NewAll$Moment_f = factor(NewAll$Moment, levels = c("Morning", "Noon", "Afternoon
 
 library(ggplot2)
 DataMoment$Moment_f = factor(DataMoment$Moment, levels=c('Morning','Noon','Afternoon'))
-FigA <- ggplot(DataMoment, aes(LogComments, DailyTraffic)) + geom_boxplot() + xlab("Log Number of Comments") + ylab("Typical Traffic")
-FigB <- ggplot(DataMoment, aes(LogComments, DailyTraffic)) + geom_boxplot() + xlab("Log Number of Comments") + ylab("Typical Traffic")
-
+FigA <- ggplot(DataMoment, aes(LogComments, DailyTraffic)) + geom_violin() + xlab("Log Number of Comments") + ylab("Typical Traffic")
+FigB <- ggplot(DataMoment, aes(DataMoment$`Expected Delivery Time`, DailyTraffic)) + geom_boxplot() + xlab("Expected Delivery Time") + ylab("Typical Traffic")
+FigC <- ggplot(DataMoment, aes(log(DataMoment$`Minimum Charge Ordering`), DailyTraffic)) + geom_boxplot() + xlab("Log Minimum Charge Ordering") + ylab("Typical Traffic")
+FigD <- ggplot(DataMoment, aes(log(DataMoment$`Cost Delivery`), DailyTraffic)) + geom_boxplot() + xlab("Cost of Delivery") + ylab("Typical Traffic")
 
 ggplot(DataMoment, aes(x=Cases, y = LogComments, colour=Cases)) + geom_violin(draw_quantiles = c(0.5)) + facet_grid(.~Moment_f) + ylab("Log Comments") + xlab("Google Typical Traffic") + scale_colour_manual(values=c("green", "orange", "red")) + theme(legend.position = "none")
 ggplot(DataMoment, aes(x=Cases, y = TimeDif, colour=Cases)) + geom_violin(draw_quantiles = c(0.5)) + facet_grid(.~Moment_f) + ylab("Delivery Time fulfillment (minutes)") + xlab("Google Typical Traffic") + scale_colour_manual(values=c("green", "orange", "red")) + theme(legend.position = "none")
